@@ -1,0 +1,36 @@
+version: '3.5'
+
+services:
+  elasticsearch-node:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
+    environment:
+      - cluster.name=docker-elk
+      - bootstrap.memory_lock=true
+      - network.host=0.0.0.0
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g #xms minimum heap size xmx maximum heap size
+      - discovery.type=single-node  #to bypass bootstrap check on dev 
+    ulimits: #not supported in stack how??? check log messages for a possible fix
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      placement:
+        constraints:
+          - node.labels.elastic == true # to mark nodes where vm.max_map_count=262144
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - target: 9200
+        published: 9200
+      - target: 9300
+        published: 9300
+    networks:
+      - elastic
+
+volumes:
+  esdata:
+
+networks: 
+  elastic:
+
+    
