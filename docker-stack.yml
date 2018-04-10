@@ -7,7 +7,7 @@ services:
       - cluster.name=docker-elk
       - bootstrap.memory_lock=true
       - network.host=0.0.0.0
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g #xms minimum heap size xmx maximum heap size
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g #xms minimum heap size, xmx maximum heap size
       - discovery.type=single-node  #to bypass bootstrap check on dev 
     ulimits: #not supported in stack how??? check log messages for a possible fix
       memlock:
@@ -24,6 +24,13 @@ services:
         published: 9200
       - target: 9300
         published: 9300
+    networks:
+      - elastic
+  logstash:
+    image: erdalkiran/logstash:6.2.3
+    command: -f /usr/share/logstash/config/logstash.conf
+    #environment:
+    #  - xpack.monitoring.elasticsearch.url=http://elasticsearch-node:9200
     networks:
       - elastic
 
