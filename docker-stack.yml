@@ -1,6 +1,7 @@
 version: '3.5'
 
 services:
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.3
     environment:
@@ -13,8 +14,12 @@ services:
       memlock:
         soft: -1
         hard: -1
-    #temporary disabled
-    #deploy:
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+        window: 10s
+    #  temporary disabled
     #  placement:
     #    constraints:
     #      - node.labels.elastic == true # to mark nodes where vm.max_map_count=262144
@@ -27,9 +32,30 @@ services:
         published: 9300
     networks:
       - elastic
-      
+
   logstash:
     image: erdalkiran/logstash-oss:6.2.3
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+        max_attempts: 10
+        window: 10s
+    depends_on: 
+      - elasticsearch
+    networks:
+      - elastic
+
+  filebeat-demo:
+    image: erdalkiran/filebeat
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+        max_attempts: 10
+        window: 10s
+    depends_on: 
+      - logstash
     networks:
       - elastic
 
@@ -38,9 +64,16 @@ services:
     environment:
       - SERVER_HOST=0.0.0.0
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+        window: 10s
     ports:
       - target: 5601
         published: 5601
+    depends_on: 
+      - elasticsearch
     networks:
       - elastic
 
