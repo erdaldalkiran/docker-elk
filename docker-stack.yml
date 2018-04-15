@@ -36,26 +36,18 @@ services:
   logstash:
     image: erdalkiran/logstash-oss:6.2.3
     deploy:
+      mode: global
       restart_policy:
         condition: any
         delay: 3s
         max_attempts: 10
         window: 10s
+    ports:
+      - published: 12201
+        target: 12201
+        protocol: udp
     depends_on: 
       - elasticsearch
-    networks:
-      - elastic
-
-  filebeat-demo:
-    image: erdalkiran/filebeat
-    deploy:
-      restart_policy:
-        condition: any
-        delay: 3s
-        max_attempts: 10
-        window: 10s
-    depends_on: 
-      - logstash
     networks:
       - elastic
 
@@ -74,6 +66,40 @@ services:
         published: 5601
     depends_on: 
       - elasticsearch
+    networks:
+      - elastic
+
+  filebeat-demo:
+    image: erdalkiran/filebeat
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+        max_attempts: 10
+        window: 10s
+    depends_on: 
+      - logstash
+    networks:
+      - elastic
+  
+  nginx:
+    image: nginx:1.13.12-alpine
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+        max_attempts: 10
+        window: 10s
+    ports:
+      - published: 80
+        target: 80
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "nginx"
+    depends_on: 
+      - logstash
     networks:
       - elastic
 
